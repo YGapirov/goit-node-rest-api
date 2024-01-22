@@ -9,9 +9,9 @@ async function listContacts() {
   return JSON.parse(data);
 }
 
-async function getContactById(contactId) {
+async function getContactById(id) {
   const contacts = await listContacts();
-  const contact = contacts.find((item) => item.id === contactId);
+  const contact = contacts.find((item) => item.id === id);
   return contact || null;
 }
 
@@ -37,13 +37,18 @@ async function addContact(name, email, phone) {
   return newContact;
 }
 
-async function updateById(contactId, name, email, phone) {
+async function updateById(id, updatedItems) {
   const contacts = await listContacts();
-  const index = contacts.findIndex((item) => item.id === contactId); //пошук книжки яку треба видалити
-  if (index === -1) return null; //якщо книжку не знайшли повернули нал
-  contacts[index] = { id: contactId, name, email, phone };
+
+  const index = contacts.findIndex((item) => item.id === id); //знаходимо індекс контакта по айді який треба оновити
+  if (index === -1) return null;
+
+  const oldContact = contacts[index]; //отримуєму існуючий контакт за індексом
+  const updatedContact = { ...oldContact, ...updatedItems }; //створюємо оновленій контакт, додаючи оновленні дані до існуючих
+  contacts[index] = updatedContact; //заміняємо контакт на оновлений
+
   await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
-  return contacts[index];
+  return updatedContact;
 }
 
 module.exports = {

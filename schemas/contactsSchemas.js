@@ -20,7 +20,9 @@ const updateContactSchema = Joi.object({
     tlds: { allow: ["com", "net"] },
   }),
   phone: Joi.string().regex(/^(\+\d{2})?(\d{10}|\d{3}-\d{3}-\d{2}-\d{2})$/),
-});
+})
+  .min(1)
+  .message("Body must have at least one field");
 
 module.exports = {
   createContactSchema,
