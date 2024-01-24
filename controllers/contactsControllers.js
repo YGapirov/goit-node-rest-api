@@ -1,46 +1,51 @@
-const { httpError } = require("../helpers");
+const HttpError = require("../helpers/HttpError");
+const controllerWrapper = require("../helpers/controllerWrapper.js");
 const contactsService = require("../services/contactsServices.js");
 
 const getAllContacts = async (req, res) => {
-  try {
-    const result = await contactsService.listContacts();
-
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const result = await contactsService.listContacts();
+  res.json(result);
 };
 
 const getOneContact = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await contactsService.getContactById(id);
-    if (!result) {
-      throw httpError(404);
-    }
-    res.json(result);
-  } catch (error) {
-    const { status = 500, message } = error;
-    res.status(status).json({ message });
+  const { id } = req.params;
+  const result = await contactsService.getContactById(id);
+  if (!result) {
+    throw HttpError(404);
   }
+  res.json(result);
 };
 
-// const deleteContact = (req, res) => {};
-
-const createContact = async (req, res, next) => {
-  try {
-    const { name, email, phone } = req.body;
-    const result = await contactsService.addContact(name, email, phone);
-    res.status(201).json(result);
-  } catch (error) {
-    next(error);
+const deleteContact = async (req, res) => {
+  const { id } = req.params;
+  const result = await contactsService.removeContact(id);
+  if (!result) {
+    throw HttpError(404);
   }
+  res.json(result);
 };
 
-// const updateContact = (req, res) => {};
+const createContact = async (req, res) => {
+  const { name, email, phone } = req.body;
+  const result = await contactsService.addContact(name, email, phone);
+  res.status(201).json(result);
+};
+
+const updateContact = async (req, res) => {
+  const { id } = req.params;
+  const updatedItems = req.body;
+
+  const result = await contactsService.updateById(id, updatedItems);
+  if (!result) {
+    throw HttpError(404);
+  }
+  res.status(200).json(result);
+};
 
 module.exports = {
-  getAllContacts,
-  getOneContact,
-  createContact,
+  getAllContacts: controllerWrapper(getAllContacts),
+  getOneContact: controllerWrapper(getOneContact),
+  createContact: controllerWrapper(createContact),
+  deleteContact: controllerWrapper(deleteContact),
+  updateContact: controllerWrapper(updateContact),
 };
