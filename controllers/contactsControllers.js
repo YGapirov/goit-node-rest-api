@@ -1,7 +1,7 @@
 const HttpError = require("../helpers/HttpError");
 const controllerWrapper = require("../helpers/controllerWrapper.js");
 
-const Contact = require("../models/contacts.js");
+const Contact = require("../models/contacts");
 
 const getAllContacts = async (req, res) => {
   const result = await Contact.find();
@@ -47,6 +47,7 @@ const updateContact = async (req, res) => {
 
 const updateStatusContact = async (req, res) => {
   const { id } = req.params;
+
   const result = await Contact.findByIdAndUpdate(id, req.body, {
     new: true,
   });
