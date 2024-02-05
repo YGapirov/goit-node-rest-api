@@ -8,8 +8,8 @@ const {
   updateStatusContact,
 } = require("../controllers/contactsControllers.js");
 
-const validateBody = require("../helpers/validateBody.js");
-const isValidId = require("../helpers/isValidId.js");
+const validateBody = require("../middlewares/validateBody.js");
+const isValidId = require("../middlewares/isValidId.js");
 
 const {
   createContactSchema,
