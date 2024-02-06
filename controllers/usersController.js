@@ -47,8 +47,25 @@ const login = async (req, res, next) => {
     throw HttpError(401, "Email or password is wrong");
   }
 
-  const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10h" });
-  res.json({ token });
+  const payload = {
+    id: user._id,
+  };
+
+  const token = jwt.sign({ payload }, JWT_SECRET, { expiresIn: "23h" });
+  await User.findByIdAndUpdate(user.id, { token }); //додаєм токен в базу даних
+
+  res.json({
+    token,
+    user: {
+      email: user.email,
+      subscription: user.subscription,
+    },
+  });
+};
+
+const getCurrent = async (req, res) => {
+  const { email, subscription } = req.user;
+  res.json({ email, subscription });
 };
 
 const logout = async (req, res) => {
@@ -56,8 +73,6 @@ const logout = async (req, res) => {
   await User.findByIdAndUpdate(_id, { token: "" });
   res.status(204).json({ message: "No Content" });
 };
-
-const getCurrent = async (req, res, next) => {};
 
 module.exports = {
   register: controllerWrapper(register),
