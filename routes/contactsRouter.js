@@ -15,6 +15,7 @@ const {
   createContactSchema,
   updateFavoriteSchema,
 } = require("../schemas/contactsSchemas.js");
+const authMiddleware = require("../middlewares/authMiddleware.js");
 
 const contactsRouter = express.Router();
 
@@ -24,7 +25,12 @@ contactsRouter.get("/:id", isValidId, getOneContact);
 
 contactsRouter.delete("/:id", isValidId, deleteContact);
 
-contactsRouter.post("/", validateBody(createContactSchema), createContact);
+contactsRouter.post(
+  "/",
+  authMiddleware,
+  validateBody(createContactSchema),
+  createContact
+);
 
 contactsRouter.put("/:id", validateBody(createContactSchema), updateContact);
 contactsRouter.patch(
