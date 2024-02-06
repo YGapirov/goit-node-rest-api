@@ -16,7 +16,7 @@ const authRouter = express.Router();
 
 authRouter.post("/register", validateBody(registerUserSchema), register);
 authRouter.post("/login", validateBody(loginUserSchema), login);
-authRouter.post("/current", authMiddleware, getCurrent);
+authRouter.get("/current", authMiddleware, getCurrent);
 authRouter.post("/logout", authMiddleware, logout);
 
 module.exports = authRouter;

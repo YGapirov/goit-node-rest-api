@@ -8,28 +8,27 @@ const { JWT_SECRET } = process.env;
 
 const authMiddleware = async (req, res, next) => {
   const { authorization } = req.headers;
-  //   console.log(authorization);
   if (!authorization) {
-    throw HttpError(401, "Not authorized");
+    return next(HttpError(401, "Not authorized"));
   }
 
-  const [bearer, token] = authorization.split(" "); //перевіряєм чи авторизвоаний юзер
+  const [bearer, token] = authorization.split(" ");
   if (bearer !== "Bearer") {
     return next(HttpError(401, "Not authorized"));
   }
-  try {
-    const { id } = jwt.verify(token, JWT_SECRET); //валідуєм токен
-    const user = await User.findById(id);
 
-    if (!user) {
+  try {
+    const {
+      payload: { id },
+    } = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(id);
+    if (!user || !user.token || user.token !== token) {
       return next(HttpError(401, "Not authorized"));
     }
-
     req.user = user;
-
     next();
   } catch (error) {
-    return next(HttpError(401, "Not authorized"));
+    next(HttpError(401, "Not authorized"));
   }
 };
 

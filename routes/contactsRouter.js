@@ -15,19 +15,21 @@ const {
   createContactSchema,
   updateFavoriteSchema,
 } = require("../schemas/contactsSchemas.js");
+
 const authMiddleware = require("../middlewares/authMiddleware.js");
 
 const contactsRouter = express.Router();
 
-contactsRouter.get("/", getAllContacts);
+contactsRouter.get("/", authMiddleware, getAllContacts);
 
 contactsRouter.get("/:id", isValidId, getOneContact);
 
-contactsRouter.delete("/:id", isValidId, deleteContact);
+contactsRouter.delete("/:id", authMiddleware, isValidId, deleteContact);
 
 contactsRouter.post(
   "/",
   authMiddleware,
+
   validateBody(createContactSchema),
   createContact
 );
