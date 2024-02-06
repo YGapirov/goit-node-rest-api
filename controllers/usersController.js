@@ -74,9 +74,21 @@ const logout = async (req, res) => {
   res.status(204).json();
 };
 
+const updateSub = async (req, res) => {
+  const { id } = req.params;
+  const result = await User.findByIdAndUpdate(id, req.body, {
+    new: true,
+  });
+  if (!result) {
+    throw HttpError(404);
+  }
+  res.status(200).json(result);
+};
+
 module.exports = {
   register: controllerWrapper(register),
   login: controllerWrapper(login),
   logout: controllerWrapper(logout),
   getCurrent: controllerWrapper(getCurrent),
+  updateSub: controllerWrapper(updateSub),
 };
