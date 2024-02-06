@@ -3,13 +3,22 @@ const controllerWrapper = require("../helpers/controllerWrapper.js");
 const Contact = require("../models/contacts");
 
 const getAllContacts = async (req, res) => {
-  const result = await Contact.find();
+  const { _id: owner } = req.user;
+  const { page = 1, limit = 10, favorite } = req.query;
+  const favFilter = { owner };
+  if (favorite) {
+    favFilter.favorite = favorite;
+  }
+  const skip = (page - 1) * limit;
+  const result = await Contact.find(favFilter, "-createdAt -updatedAt", {
+    skip,
+    limit,
+  }).populate("owner", "email");
   res.json(result);
 };
 
 const getOneContact = async (req, res) => {
   const { id } = req.params;
-
   const result = await Contact.findById(id);
   if (!result) {
     throw HttpError(404);
@@ -27,14 +36,9 @@ const deleteContact = async (req, res) => {
   res.json(result);
 };
 
-// const createContact = async (req, res) => {
-//   const { name, email, phone } = req.body;
-//   const result = await Contact.create(req.body);
-//   res.status(201).json(result);
-// };
-
 const createContact = async (req, res) => {
-  const result = await Contact.create(req.body);
+  const { _id: owner } = req.user;
+  const result = await Contact.create({ ...req.body, owner });
 
   res.status(201).json(result);
 };
