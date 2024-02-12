@@ -3,6 +3,8 @@ const controllerWrapper = require("../helpers/controllerWrapper.js");
 const User = require("../models/users.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs/promises");
+const path = require("path");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -11,7 +13,7 @@ const { JWT_SECRET } = process.env;
 
 const register = async (req, res, next) => {
   const { email, password, subscription } = req.body;
-  //   const salt = await bcrypt.genSalt(); //можно просто передити стандартні солі(10)
+
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const result = await User.create({
@@ -85,10 +87,27 @@ const updateSub = async (req, res) => {
   res.status(200).json(result);
 };
 
+const uploadImg = async (req, res, next) => {
+  const { filename } = req.file;
+
+  const tmpPath = path.resolve("tmp", filename);
+  const publicPath = path.resolve("public", "avatars", filename);
+
+  try {
+    await fs.rename(tmpPath, publicPath);
+
+    return res.json({ ok: true });
+  } catch (error) {
+    await fs.unlink(tmpPath);
+    throw error;
+  }
+};
+
 module.exports = {
   register: controllerWrapper(register),
   login: controllerWrapper(login),
   logout: controllerWrapper(logout),
   getCurrent: controllerWrapper(getCurrent),
   updateSub: controllerWrapper(updateSub),
+  uploadImg: controllerWrapper(uploadImg),
 };

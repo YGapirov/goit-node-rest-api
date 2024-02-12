@@ -1,9 +1,9 @@
 const express = require("express");
-const { register, login, logout, getCurrent, updateSub } = require("../controllers/usersController");
+const { register, login, logout, getCurrent, updateSub, uploadImg } = require("../controllers/usersController");
 const { registerUserSchema, loginUserSchema, updateSubSchema } = require("../schemas/userSchemas.js");
 const authMiddleware = require("../middlewares/authMiddleware.js");
 const validateBody = require("../middlewares/validateBody.js");
-// const isValidId = require("../middlewares/isValidId.js");
+const upload = require("../middlewares/upload");
 
 const authRouter = express.Router();
 
@@ -12,5 +12,6 @@ authRouter.post("/login", validateBody(loginUserSchema), login);
 authRouter.get("/current", authMiddleware, getCurrent);
 authRouter.post("/logout", authMiddleware, logout);
 authRouter.patch("/subscription", authMiddleware, validateBody(updateSubSchema), updateSub);
+authRouter.patch("/avatars", upload.single("avatarURL"), uploadImg);
 
 module.exports = authRouter;
