@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs/promises");
 const path = require("path");
+const gravatar = require("gravatar");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -15,16 +16,14 @@ const register = async (req, res, next) => {
   const { email, password, subscription } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const avatarURL = gravatar.url(email);
   try {
-    const result = await User.create({
-      email,
-      password: hashedPassword,
-      subscription,
-    });
+    const result = await User.create({ email, password: hashedPassword, subscription, avatarURL });
     res.status(201).json({
       user: {
         email,
         subscription: result.subscription,
+        avatarURL: result.avatarURL,
       },
     });
   } catch (error) {
@@ -87,20 +86,19 @@ const updateSub = async (req, res) => {
   res.status(200).json(result);
 };
 
-const uploadImg = async (req, res, next) => {
+const updateAvatar = async (req, res) => {
+  const { _id } = req.user;
   const { filename } = req.file;
 
   const tmpPath = path.resolve("tmp", filename);
   const publicPath = path.resolve("public", "avatars", filename);
+  await fs.rename(tmpPath, publicPath);
 
-  try {
-    await fs.rename(tmpPath, publicPath);
-
-    return res.json({ ok: true });
-  } catch (error) {
-    await fs.unlink(tmpPath);
-    throw error;
+  const result = await User.findByIdAndUpdate(_id, { avatarURL: publicPath }, { new: true });
+  if (!result) {
+    throw HttpError(404);
   }
+  res.status(200).json({ avatarURL: result.avatarURL });
 };
 
 module.exports = {
@@ -109,5 +107,5 @@ module.exports = {
   logout: controllerWrapper(logout),
   getCurrent: controllerWrapper(getCurrent),
   updateSub: controllerWrapper(updateSub),
-  uploadImg: controllerWrapper(uploadImg),
+  updateAvatar: controllerWrapper(updateAvatar),
 };
