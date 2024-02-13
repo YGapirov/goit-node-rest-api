@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs/promises");
 const path = require("path");
 const gravatar = require("gravatar");
+var Jimp = require("jimp");
 
 const dotenv = require("dotenv");
 dotenv.config();
@@ -92,7 +93,12 @@ const updateAvatar = async (req, res) => {
 
   const tmpPath = path.resolve("tmp", filename);
   const publicPath = path.resolve("public", "avatars", filename);
-  await fs.rename(tmpPath, publicPath);
+
+  //адаптація розміру
+  const image = await Jimp.read(tmpPath);
+  await image.resize(250, 250).write(tmpPath);
+
+  await fs.rename(tmpPath, publicPath); //переміщення
 
   const result = await User.findByIdAndUpdate(_id, { avatarURL: publicPath }, { new: true });
   if (!result) {
