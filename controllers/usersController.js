@@ -89,6 +89,10 @@ const updateSub = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   const { _id } = req.user;
+
+  if (!req.file) {
+    throw HttpError(400, "No file was provided for upload!");
+  }
   const { filename } = req.file;
 
   const tmpPath = path.resolve("tmp", filename);
@@ -96,6 +100,7 @@ const updateAvatar = async (req, res) => {
 
   //адаптація розміру
   const image = await Jimp.read(tmpPath);
+
   await image.resize(250, 250).write(tmpPath);
 
   await fs.rename(tmpPath, publicPath); //переміщення
