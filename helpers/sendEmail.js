@@ -7,26 +7,20 @@ const config = {
   port: 465,
   secure: true,
   auth: {
-    user: "usergoit@meta.ua",
+    user: "hazing5849@meta.ua",
     pass: META_PASSWORD,
   },
 };
 
 const transporter = nodemailer.createTransport(config);
 
-const sendEmail = async ({ to, subject, text, html, from = "usergoit@meta.ua" }) => {
-  try {
-    await transporter.sendMail({
-      from,
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    return { ok: true };
-  } catch (err) {
-    throw err;
-  }
+const sendEmail = async ({ to, subject, text, html, from = "hazing5849@meta.ua" }) => {
+  await transporter.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    html,
+  });
 };
 module.exports = sendEmail;
