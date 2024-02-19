@@ -15,18 +15,12 @@ const config = {
 const transporter = nodemailer.createTransport(config);
 
 const sendEmail = async ({ to, subject, text, html, from = "hazing5849@meta.ua" }) => {
-  try {
-    await transporter.sendMail({
-      from,
-      to,
-      subject,
-      text,
-      html,
-    });
-
-    return { ok: true };
-  } catch (err) {
-    throw err;
-  }
+  await transporter.sendMail({
+    from,
+    to,
+    subject,
+    text,
+    html,
+  });
 };
 module.exports = sendEmail;
