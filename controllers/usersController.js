@@ -1,5 +1,7 @@
 const HttpError = require("../helpers/HttpError.js");
 const controllerWrapper = require("../helpers/controllerWrapper.js");
+const sendEmail = require("../helpers/sendEmail.js");
+
 const User = require("../models/users.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -7,19 +9,31 @@ const fs = require("fs/promises");
 const path = require("path");
 const gravatar = require("gravatar");
 var Jimp = require("jimp");
+const { nanoid } = require("nanoid");
 
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { JWT_SECRET } = process.env;
+const { JWT_SECRET, BASE_URL } = process.env;
 
 const register = async (req, res, next) => {
   const { email, password, subscription } = req.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const avatarURL = gravatar.url(email);
+  const verificationToken = nanoid();
+
   try {
-    const result = await User.create({ email, password: hashedPassword, subscription, avatarURL });
+    const result = await User.create({ email, password: hashedPassword, subscription, avatarURL, verificationToken });
+
+    const verifyEmail = {
+      to: email,
+      subject: "Verify email",
+      html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click verify email</a>`,
+    };
+
+    await sendEmail(verifyEmail);
+
     res.status(201).json({
       user: {
         email,
@@ -35,6 +49,16 @@ const register = async (req, res, next) => {
   }
 };
 
+const verify = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+    throw HttpError(401, "User not found");
+  }
+  await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: "" });
+  res.status(200).json({ message: "Verification successful" });
+};
+
 const login = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -42,6 +66,10 @@ const login = async (req, res, next) => {
 
   if (!user) {
     throw HttpError(401, "Email or password is wrong"); //якщо нема в базі еррор
+  }
+
+  if (!user.verify) {
+    throw HttpError(401, "Email not verified");
   }
 
   const isValidPassword = await bcrypt.compare(password, user.password); //перевіряємо коректність паролю
@@ -119,4 +147,5 @@ module.exports = {
   getCurrent: controllerWrapper(getCurrent),
   updateSub: controllerWrapper(updateSub),
   updateAvatar: controllerWrapper(updateAvatar),
+  verify: controllerWrapper(verify),
 };
